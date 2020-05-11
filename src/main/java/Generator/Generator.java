@@ -6,6 +6,7 @@ import SwaggerObjects.Service;
 import SwaggerObjects.ServiceParameter;
 import SwaggerObjects.ServiceResponse;
 import enums.enums;
+import io.restassured.http.ContentType;
 
 import javax.naming.ServiceUnavailableException;
 import java.io.*;
@@ -15,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Generator {
     //Generator class instance for glorious code generation stuff. Neat.
@@ -61,7 +61,8 @@ public class Generator {
      */
     private ArrayList<File> generate() throws Exception {
         createNewJavaFile("TestCases");
-        String methodName = null, method = null, requestContentType = null, responseContentType = null;
+        String methodName = null, method = null;
+        ContentType requestContentType = null, responseContentType = null;
         ArrayList<ServiceParameter> serviceParameters = null;
         ServiceResponse response = null;
         if(currentJavaFile == null)
@@ -75,19 +76,24 @@ public class Generator {
                 currentMethod = writeToJavaVariable("testcaseName", methodName, currentMethod);
             else
                 System.out.println("Method name is null. Skipping.");
+            requestContentType = currentService.getRequestContentType();
             if(requestContentType != null)
-                currentMethod = writeToJavaVariable("requestContentType", requestContentType, currentMethod);
+                currentMethod = writeToJavaVariable("requestContentType", requestContentType.toString(), currentMethod);
             else
                 System.out.println("RequestContentType is null. Skipping.");
+            responseContentType = currentService.getResponseContentType();
             if(responseContentType != null)
-                currentMethod = writeToJavaVariable("responseContentType", responseContentType, currentMethod);
+                currentMethod = writeToJavaVariable("responseContentType", responseContentType.toString(), currentMethod);
             else
                 System.out.println("ResponseContentType is null. Skipping.");
+            serviceParameters = currentService.getServiceParameters();
+            //Get into service parameters no matter what, since it needs to delete the var string even if no parameters are given.
+            insertServiceParameters(serviceParameters, currentMethod);
+            response = currentService.getResponse();
             if(response != null)
                 currentMethod = writeToJavaVariable("statusCode", Integer.toString(response.getStatusCode()), currentMethod);
             else
                 System.out.println("Status code from response is null. Skipping.");
-
             currentMethod += "\n\n";
             appendToJavaFile(currentJavaFile, currentMethod);
         }
@@ -104,6 +110,23 @@ public class Generator {
         parser.setJSON(parsedFile);
         parser.runParser();
         parsedServices = DataManager.getInstance().getServices();
+    }
+
+    /**
+     * Write everything found inside service parameters array.
+     *
+     * @param serviceParameters ArrayList<ServiceParameter>
+     * @param currentMethod String
+     * @throws IOException
+     */
+    private void insertServiceParameters(ArrayList<ServiceParameter> serviceParameters, String currentMethod) throws IOException {
+        if(serviceParameters == null) {
+            writeToJavaVariable("parameters", "", currentMethod);
+            return;
+        }
+        for (ServiceParameter currentPar: serviceParameters) {
+
+        }
     }
 
     /**
@@ -132,7 +155,7 @@ public class Generator {
      * @param varName String
      * @param data String
      */
-    private String writeToJavaVariable(String varName, String data, String  contentOfCurrentFile) throws IOException{
+    private String writeToJavaVariable(String varName, String data, String contentOfCurrentFile) throws IOException{
         contentOfCurrentFile = contentOfCurrentFile.replaceAll("%" + varName, data);
         return contentOfCurrentFile;
     }
