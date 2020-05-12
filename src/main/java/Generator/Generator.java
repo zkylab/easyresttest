@@ -5,7 +5,7 @@ import Parser.Parser;
 import SwaggerObjects.Service;
 import SwaggerObjects.ServiceParameter;
 import SwaggerObjects.ServiceResponse;
-import enums.enums;
+import enums.Enums;
 import io.restassured.http.ContentType;
 
 import javax.naming.ServiceUnavailableException;
@@ -23,16 +23,18 @@ public class Generator {
     //Parsed services from Parser class.
     private static ArrayList<Service> parsedServices = null;
     //This tells the Generator class to which folder it should output its generated .java files.
-    private static Path rootOutputLocation = Paths.get("Generated");
+    private static Path rootOutputLocation = Paths.get("Generated").toAbsolutePath();
     //Current java file under construction.
     private static String currentJavaFile = null;
     //Method template. Defaulted to basic GetURL template.
-    private static enums.testCaseType currentTestCaseType = enums.testCaseType.GetURLAssertStatusCode;
+    private static Enums.testCaseType currentTestCaseType = Enums.testCaseType.GetURLAssertStatusCode;
+
+    //DELETE THIS WHEN HOSTNAME STARTS TO BE PROVIDED FROM PARSER!!11!!cCc
+    private static String hostname = "https://test.com";
 
     /**
      * Get the generator instance.
      *
-     * @return void
      */
     public static Generator getInstance() {
         if(generator_instance == null)
@@ -43,67 +45,79 @@ public class Generator {
     /**
      * Run the code generator after location of the parsed Services are set.
      *
-     * @throws ServiceUnavailableException
+     * @param fileName for java file name.
      *
-     * @return void
+     * @throws Exception
+     *
      */
-    public void runGenerator() throws Exception {
+    public void runGenerator(String fileName) throws Exception {
         if(parsedServices == null)
             throw new ServiceUnavailableException("Parser Service is null.");
-        generate();
+        generate(fileName);
     }
 
     /**
      * Generate the testcases.
      *
+     * @param fileName for java file name. Normally passed from runGenerator function.
      * @throws Exception
-     * @return ArrayList<File>
      */
-    private ArrayList<File> generate() throws Exception {
-        createNewJavaFile("TestCases");
-        String methodName = null, method = null;
-        ContentType requestContentType = null, responseContentType = null;
-        ArrayList<ServiceParameter> serviceParameters = null;
-        ServiceResponse response = null;
+    private void generate(String fileName) throws Exception {
+        createNewJavaFile(fileName);
+        String methodName, method;
+        ContentType requestContentType, responseContentType;
+        ArrayList<ServiceParameter> serviceParameters;
+        ServiceResponse response;
         if(currentJavaFile == null)
             throw new FileNotFoundException("Java file not found.");
         for (Service currentService : parsedServices) {
             //Copy the template test function from the template files.
             String currentMethod = appendTestFunction(new File(Paths.get("resources").toAbsolutePath().toString() + "/" + currentTestCaseType.toString() + ".re"));
-            //Get the current parameters from service object.
+
             methodName = removeSpecialChars(currentService.getEndPointPath());
             if(methodName != null)
                 currentMethod = writeToJavaVariable("testcaseName", methodName, currentMethod);
             else
                 System.out.println("Method name is null. Skipping.");
+
             requestContentType = currentService.getRequestContentType();
             if(requestContentType != null)
                 currentMethod = writeToJavaVariable("requestContentType", requestContentType.toString(), currentMethod);
             else
                 System.out.println("RequestContentType is null. Skipping.");
+
             responseContentType = currentService.getResponseContentType();
             if(responseContentType != null)
                 currentMethod = writeToJavaVariable("responseContentType", responseContentType.toString(), currentMethod);
             else
                 System.out.println("ResponseContentType is null. Skipping.");
+
             serviceParameters = currentService.getServiceParameters();
             //Get into service parameters no matter what, since it needs to delete the var string even if no parameters are given.
-            insertServiceParameters(serviceParameters, currentMethod);
+            currentMethod = insertServiceParameters(serviceParameters, currentService.getEndPointPath(), currentMethod);
+
             response = currentService.getResponse();
             if(response != null)
                 currentMethod = writeToJavaVariable("statusCode", Integer.toString(response.getStatusCode()), currentMethod);
             else
                 System.out.println("Status code from response is null. Skipping.");
+
+
             currentMethod += "\n\n";
+            currentMethod = currentMethod.replaceAll("%parameters", "");
+            currentMethod = currentMethod.replaceAll("%testURL", hostname);
+
+            System.out.println("Function constructed. Writing to java file...");
             appendToJavaFile(currentJavaFile, currentMethod);
+            System.out.println("Java file " + fileName + " appended.");
         }
-        return null;
+        System.out.println("Parsed methods generated.");
     }
 
     /**
      * Set the parsed services from The Parsed class.
      *
-     * @param parsedFile
+     * @param parsedFile for getting parsed services from Parser submodule.
      */
     public void setParsedServices(File parsedFile) {
         Parser parser = Parser.getInstance();
@@ -113,27 +127,42 @@ public class Generator {
     }
 
     /**
-     * Write everything found inside service parameters array.
+     * Take current method string and pass it through after inserting service parameters found in service object.
      *
-     * @param serviceParameters ArrayList<ServiceParameter>
+     * @param serviceParameters A ServiceParameter types arraylist for iterating current rest parameter inputs.
      * @param currentMethod String
      * @throws IOException
+     * @return currentMethod String
      */
-    private void insertServiceParameters(ArrayList<ServiceParameter> serviceParameters, String currentMethod) throws IOException {
+    private String insertServiceParameters(ArrayList<ServiceParameter> serviceParameters, String endpointPath, String currentMethod) throws IOException {
         if(serviceParameters == null) {
-            writeToJavaVariable("parameters", "", currentMethod);
-            return;
+            currentMethod = writeToJavaVariable("parameters", "", currentMethod);
+            return currentMethod;
         }
         for (ServiceParameter currentPar: serviceParameters) {
-
+            if(currentPar.getType() == null)
+                continue;
+           switch (currentPar.getIn()) {
+               case "path":
+                   currentMethod = writeToJavaVariable("testURL", (hostname + endpointPath).replaceAll(currentPar.getName(), "DATA"), currentMethod);
+                   break;
+               case "formData":
+                   currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA). \n %parameters", currentMethod);
+                   break;
+               case "query":
+                   currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA). \n %parameters", currentMethod);
+                   break;
+           }
         }
+        return currentMethod;
     }
 
     /**
      * Set the template function file to use.
      *
+     * @param testCaseType for getting the template type.
      */
-    public void setTemplate(enums.testCaseType testCaseType) {
+    public void setTemplate(Enums.testCaseType testCaseType) {
         if(testCaseType != null)
             currentTestCaseType = testCaseType;
         System.out.println("Template : " + testCaseType.toString() + " setted.");
@@ -142,7 +171,7 @@ public class Generator {
     /**
      * Set the custom location for output folder if needed.
      *
-     * @param location File
+     * @param location File input for setting the location of custom folder. Note that custom folder is defaulted to Generated folder.
      */
     public void setCustomOutputFolder(File location) {
         rootOutputLocation = location.toPath();
@@ -152,8 +181,9 @@ public class Generator {
      * //Open the current java file and write the parameters found from parsed service.
      *
      * @throws IOException
-     * @param varName String
-     * @param data String
+     * @param varName for variable field to replace in template file.
+     * @param data for replacing the parameter field to text given.
+     * @return returns string with wanted parameters inserted into current string that is being processed.
      */
     private String writeToJavaVariable(String varName, String data, String contentOfCurrentFile) throws IOException{
         contentOfCurrentFile = contentOfCurrentFile.replaceAll("%" + varName, data);
@@ -163,9 +193,9 @@ public class Generator {
     /**
      * For each parsed object, go to the template file and copy everthing inside to current java file.
      *
-     * @param fileToRead String
+     * @param filetoRead for getting the template file text.
      *
-     * @return String
+     * @return A brand new string to process parameters and other wanted fields.
      * @throws IOException
      */
     private String appendTestFunction(File filetoRead) throws IOException {
@@ -180,8 +210,8 @@ public class Generator {
     /**
      * Get string and remove and special chars and return regulated text as String
      *
-     * @param text
-     * @return String
+     * @param text for getting a filth ridden text
+     * @return return a spotless clean string.
      */
     private String removeSpecialChars(String text) {
         return text.replaceAll("[^a-zA-Z0-9\\s+]", "");
@@ -194,6 +224,8 @@ public class Generator {
      * @return void
      */
     private void createNewJavaFile(String name) throws IOException {
+        if(!Files.exists(rootOutputLocation))
+            Files.createDirectory(rootOutputLocation);
         currentJavaFile = rootOutputLocation.toString() + "/" + name + ".java";
         File javaFile = new File(currentJavaFile);
         javaFile.createNewFile();
@@ -204,8 +236,8 @@ public class Generator {
     /**
      * Append the given string to Output file.
      *
-     * @param fileToWrite File
-     * @param data String
+     * @param fileToWrite to get output file path.
+     * @param data data to write into output file path.
      *
      * @throws IOException
      */

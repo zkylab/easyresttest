@@ -1,6 +1,6 @@
 package enums;
 
-public class enums {
+public class Enums {
 
     /**
      * Enum for types of template that resides in resources folder.
