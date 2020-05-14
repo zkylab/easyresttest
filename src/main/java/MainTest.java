@@ -19,5 +19,9 @@ public class MainTest {
 
         ArrayList<Service> services = DataManager.getInstance().getServices();
         System.out.println(services);
+
+
+        String host = DataManager.getInstance().getHost();
+        System.out.println(host);
     }
 }

@@ -37,6 +37,12 @@ public class Parser {
         HashMap<String,Object> servicesRaw = (HashMap<String, Object>) swaggerRoot.get("paths");
         ArrayList<Service> services = parseServices(servicesRaw);
         DataManager.getInstance().setServices(services);
+        String host = parseHost(swaggerRoot);
+        DataManager.getInstance().setHost(host);
+    }
+
+    public String parseHost(HashMap<String, Object>  root){
+        return root.get("host").toString();
     }
 
     private ArrayList<Service> parseServices(HashMap<String, Object>  root){
