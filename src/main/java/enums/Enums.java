@@ -11,4 +11,7 @@ public class Enums {
         GetURLAssertStatusCode,
     }
 
+    public enum testClassType {
+        GeneralRestAssuredContainer,
+    }
 }

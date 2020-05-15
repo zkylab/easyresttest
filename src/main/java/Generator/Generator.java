@@ -29,7 +29,7 @@ public class Generator {
     //Method template. Defaulted to basic GetURL template.
     private static Enums.testCaseType currentTestCaseType = Enums.testCaseType.GetURLAssertStatusCode;
 
-    //DELETE THIS WHEN HOSTNAME STARTS TO BE PROVIDED FROM PARSER!!11!!cCc
+    //If this comes out as test.com at the end of the generation, hostname was not given.
     private static String hostname = "https://test.com";
 
     /**
@@ -47,13 +47,26 @@ public class Generator {
      *
      * @param fileName for java file name.
      *
-     * @throws Exception
+     * @return the path of the generated file.
+     * @throws Exception this throws this very general exception since it is the main method that every submethod returns too. Hence, Mother of all Exception.
      *
      */
-    public void runGenerator(String fileName) throws Exception {
+    public String runGenerator(String fileName, String hostname) throws Exception {
         if(parsedServices == null)
             throw new ServiceUnavailableException("Parser Service is null.");
+        setHostname(hostname);
         generate(fileName);
+        if(currentJavaFile != null)
+            return currentJavaFile;
+        else return "File path not found. Check System log.";
+    }
+
+    /**
+     *
+     * @param hostname for hostname. Duh.
+     */
+    private void setHostname(String hostname) {
+        this.hostname = hostname;
     }
 
     /**
@@ -70,6 +83,8 @@ public class Generator {
         ServiceResponse response;
         if(currentJavaFile == null)
             throw new FileNotFoundException("Java file not found.");
+        String currentClass = appendTestFunction(new File(Paths.get("resources").toAbsolutePath().toString() + "/" + Enums.testClassType.GeneralRestAssuredContainer.toString() + ".re"));
+        currentClass = writeToJavaVariable("testclassName", fileName, currentClass);
         for (Service currentService : parsedServices) {
             //Copy the template test function from the template files.
             String currentMethod = appendTestFunction(new File(Paths.get("resources").toAbsolutePath().toString() + "/" + currentTestCaseType.toString() + ".re"));
@@ -79,6 +94,12 @@ public class Generator {
                 currentMethod = writeToJavaVariable("testcaseName", methodName, currentMethod);
             else
                 System.out.println("Method name is null. Skipping.");
+
+            method = currentService.getMethod();
+            if(method != null)
+                currentMethod = writeToJavaVariable("reqType", method, currentMethod);
+            else
+                System.err.println("Method name is null in Parsed objects. Endpoint of the object :" + currentService.getEndPointPath());
 
             requestContentType = currentService.getRequestContentType();
             if(requestContentType != null)
@@ -93,8 +114,8 @@ public class Generator {
                 System.out.println("ResponseContentType is null. Skipping.");
 
             serviceParameters = currentService.getServiceParameters();
-            //Get into service parameters no matter what, since it needs to delete the var string even if no parameters are given.
-            currentMethod = insertServiceParameters(serviceParameters, currentService.getEndPointPath(), currentMethod);
+            //Get into service parameters no matter what, since it needs to delete the var string even if no parameters has been given.
+            currentMethod = insertServiceParameters(serviceParameters, currentService.getEndPointPath(), method, currentMethod);
 
             response = currentService.getResponse();
             if(response != null)
@@ -102,15 +123,17 @@ public class Generator {
             else
                 System.out.println("Status code from response is null. Skipping.");
 
-
-            currentMethod += "\n\n";
+            currentMethod += "\r\n\r\n";
             currentMethod = currentMethod.replaceAll("%parameters", "");
-            currentMethod = currentMethod.replaceAll("%testURL", hostname);
-
-            System.out.println("Function constructed. Writing to java file...");
-            appendToJavaFile(currentJavaFile, currentMethod);
+            currentMethod = currentMethod.replaceAll("%testURL", "\"" + hostname + "\"");
+            currentClass = writeToJavaVariable("tests", currentMethod + "\r\n%tests", currentClass);
             System.out.println("Java file " + fileName + " appended.");
         }
+        currentClass = currentClass.replaceAll("%tests", "");
+        //Remove all empty tabs, lines, etc...
+        currentClass = currentClass.replaceAll("(?m)^[ \t]*\r?\n", "");
+        System.out.println("Class constructed. Writing to java file...");
+        appendToJavaFile(currentJavaFile, currentClass);
         System.out.println("Parsed methods generated.");
     }
 
@@ -134,7 +157,7 @@ public class Generator {
      * @throws IOException
      * @return currentMethod String
      */
-    private String insertServiceParameters(ArrayList<ServiceParameter> serviceParameters, String endpointPath, String currentMethod) throws IOException {
+    private String insertServiceParameters(ArrayList<ServiceParameter> serviceParameters, String endpointPath, String method, String currentMethod) throws IOException {
         if(serviceParameters == null) {
             currentMethod = writeToJavaVariable("parameters", "", currentMethod);
             return currentMethod;
@@ -142,17 +165,24 @@ public class Generator {
         for (ServiceParameter currentPar: serviceParameters) {
             if(currentPar.getType() == null)
                 continue;
-           switch (currentPar.getIn()) {
-               case "path":
-                   currentMethod = writeToJavaVariable("testURL", (hostname + endpointPath).replaceAll(currentPar.getName(), "DATA"), currentMethod);
-                   break;
-               case "formData":
-                   currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA). \n %parameters", currentMethod);
-                   break;
-               case "query":
-                   currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA). \n %parameters", currentMethod);
-                   break;
-           }
+            switch (currentPar.getIn()) {
+                case "path":
+                    currentMethod = writeToJavaVariable("parameters", "pathparam(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("testURL", "\"" + (hostname + endpointPath) + "\"", currentMethod);
+                    break;
+                case "formData":
+                    currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    break;
+                case "query":
+                    currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    break;
+                case "body":
+                    currentMethod = writeToJavaVariable("parameters", "body(BODYDATA).\r\n%parameters", currentMethod);
+                    break;
+                case "header":
+                    currentMethod = writeToJavaVariable("parameters", "header(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    break;
+            }
         }
         return currentMethod;
     }
@@ -160,7 +190,7 @@ public class Generator {
     /**
      * Set the template function file to use.
      *
-     * @param testCaseType for getting the template type.
+     * @param testCaseType for getting the method template type.
      */
     public void setTemplate(Enums.testCaseType testCaseType) {
         if(testCaseType != null)
@@ -185,9 +215,8 @@ public class Generator {
      * @param data for replacing the parameter field to text given.
      * @return returns string with wanted parameters inserted into current string that is being processed.
      */
-    private String writeToJavaVariable(String varName, String data, String contentOfCurrentFile) throws IOException{
-        contentOfCurrentFile = contentOfCurrentFile.replaceAll("%" + varName, data);
-        return contentOfCurrentFile;
+    private String writeToJavaVariable(String varName, String data, String contentOfCurrentFile){
+        return contentOfCurrentFile.replaceAll("%" + varName, data);
     }
 
     /**
@@ -221,12 +250,14 @@ public class Generator {
      * Create a new java file for the new Test cases. Location is defaulted to Generated folder.
      * @throws IOException
      *
-     * @return void
      */
     private void createNewJavaFile(String name) throws IOException {
         if(!Files.exists(rootOutputLocation))
             Files.createDirectory(rootOutputLocation);
+
         currentJavaFile = rootOutputLocation.toString() + "/" + name + ".java";
+        if(Files.exists(Paths.get(currentJavaFile)))
+            createNewJavaFile(name + "NEW");
         File javaFile = new File(currentJavaFile);
         javaFile.createNewFile();
 
