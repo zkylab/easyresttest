@@ -22,8 +22,11 @@ public class MainTest {
         ArrayList<Service> services = DataManager.getInstance().getServices();
         System.out.println(services);
 
-//        Generator generator = Generator.getInstance();
-//        generator.setParsedServices(new File("D:\\Workspace\\easyresttest\\src\\main\\sample-data\\petshop-swagger.json"));
-//        generator.runGenerator();
+        Generator generator = Generator.getInstance();
+        generator.setParsedServices(new File("D:\\Workspace\\easyresttest\\src\\main\\sample-data\\petshop-swagger.json"));
+        generator.runGenerator("test", DataManager.getInstance().getHost());
+
+        String host = DataManager.getInstance().getHost();
+        System.out.println(host);
     }
 }
