@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class DataManager {
     private static DataManager dataManager_instance = null;
     private ArrayList<Service> services;
-
+    private String host;
     private DataManager() {
 
     }
@@ -25,4 +25,13 @@ public class DataManager {
     public void setServices(ArrayList<Service> services) {
         this.services = services;
     }
+
+    public void setHost(String host){
+        this.host = host;
+    }
+
+    public String getHost(){
+        return host;
+    }
+
 }

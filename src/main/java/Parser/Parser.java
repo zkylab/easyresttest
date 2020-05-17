@@ -4,8 +4,12 @@ import DataManager.DataManager;
 import SwaggerObjects.Service;
 import SwaggerObjects.ServiceParameter;
 import SwaggerObjects.ServiceResponse;
+import SwaggerObjects.ServiceScheme;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+//import sun.reflect.generics.tree.Tree;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +41,12 @@ public class Parser {
         HashMap<String,Object> servicesRaw = (HashMap<String, Object>) swaggerRoot.get("paths");
         ArrayList<Service> services = parseServices(servicesRaw);
         DataManager.getInstance().setServices(services);
+        String host = parseHost(swaggerRoot);
+        DataManager.getInstance().setHost(host);
+    }
+
+    public String parseHost(HashMap<String, Object>  root){
+        return root.get("host").toString();
     }
 
     private ArrayList<Service> parseServices(HashMap<String, Object>  root){
@@ -69,6 +79,21 @@ public class Parser {
                 HashMap<String,Object> responseRaw = (HashMap<String, Object>) serviceInnerData.get("responses");
                 ServiceResponse serviceResponse = parseServiceResponse(responseRaw);
                 service.setResponse(serviceResponse);
+
+                HashMap<String, Object>  swaggerRoot = parseSwaggerRaw();
+                HashMap<String,Object> test = new HashMap<>();
+                if(((HashMap)responseRaw.get("200"))!= null){
+                    if((((HashMap)(HashMap)((HashMap)responseRaw.get("200")).get("schema")).get("$ref")) != null){
+                        String schemaKey = (((HashMap)(HashMap)((HashMap)responseRaw.get("200")).get("schema")).get("$ref")).toString();
+                        schemaKey = schemaKey.substring(schemaKey.lastIndexOf("/")+1);
+                        ServiceScheme schema = new ServiceScheme();
+                        schema.setType(((HashMap)((HashMap)swaggerRoot.get("definitions")).get(schemaKey)).get("type").toString());
+                        TreeMap<String,String> tree = new TreeMap<>();
+                        tree.putAll((HashMap)((HashMap)((HashMap)swaggerRoot.get("definitions")).get(schemaKey)).get("properties"));
+                        schema.setProperties(tree);
+                        serviceResponse.setSchema(schema);
+                    }
+                }
             }
             services.add(service);
             }
