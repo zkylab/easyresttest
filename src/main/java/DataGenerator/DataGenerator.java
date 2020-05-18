@@ -3,8 +3,15 @@ package DataGenerator;
 import com.devskiller.jfairy.Fairy;
 import com.devskiller.jfairy.producer.person.Person;
 import com.devskiller.jfairy.producer.person.PersonProperties;
+import com.github.javafaker.service.FakeValuesService;
+import com.github.javafaker.service.RandomService;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Random;
 
 public class DataGenerator{
@@ -70,6 +77,20 @@ public class DataGenerator{
 
         tcNo += eleventhNum;
         return tcNo;
+    }
+
+    public void generateDataWithRegex(String regex, int number,String pathName) {
+        FakeValuesService fakeValuesService = new FakeValuesService(new Locale("en-US"), new RandomService());
+        File file = new File(pathName);
+        try(BufferedWriter br = new BufferedWriter(new FileWriter(file))){
+            for(int i=0; i<number; i++){
+                String reg = fakeValuesService.regexify(regex);
+                br.write(reg);
+                br.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Unable to read file " +file.toString());
+        }
     }
 
     public ArrayList<Person> getList() throws Exception {

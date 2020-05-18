@@ -15,6 +15,7 @@ public class TestDataGenerator {
             dataGen.setFemaleAgeRate(20,3);
             ArrayList<Person> list =  dataGen.getList();
             printList(list);
+            // dataGen.generateDataWithRegex("[a-z1-9]{10}",10,"text.txt");
         }
         catch (Exception e){
             System.out.println(e.getMessage());
