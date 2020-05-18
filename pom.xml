@@ -39,6 +39,12 @@
             <version>2.10.2</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.devskiller/jfairy -->
+        <dependency>
+            <groupId>com.devskiller</groupId>
+            <artifactId>jfairy</artifactId>
+            <version>0.6.4</version>
+        </dependency>
 
     </dependencies>
 
