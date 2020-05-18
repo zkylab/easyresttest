@@ -5,6 +5,7 @@ import com.devskiller.jfairy.producer.person.Person;
 import com.devskiller.jfairy.producer.person.PersonProperties;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class DataGenerator{
     private double total = -1;
@@ -38,7 +39,38 @@ public class DataGenerator{
         this.femaleMax = maxAge;
     }
 
+    private String getRandomNationalIdentificationNumber(){
+        Random rnd = new Random();
+        String tcNo = "";
+        String firstNum = rnd.nextInt(9) + 1 + "";
+        tcNo += firstNum;
+        for(int i=0; i<8; i++){
+            tcNo +=  rnd.nextInt(10) + "";
+        }
+        String tenthNum = ((Integer.parseInt(tcNo.charAt(0)+"") +
+                Integer.parseInt(tcNo.charAt(2)+"") +
+                Integer.parseInt(tcNo.charAt(4)+"") +
+                Integer.parseInt(tcNo.charAt(6)+"") +
+                Integer.parseInt(tcNo.charAt(8)+""))*7 -
+                (Integer.parseInt(tcNo.charAt(1)+"") +
+                        Integer.parseInt(tcNo.charAt(3)+"") +
+                        Integer.parseInt(tcNo.charAt(5)+"") +
+                        Integer.parseInt(tcNo.charAt(7)+""))) % 10 + "";
+        tcNo += tenthNum;
+        String eleventhNum = (Integer.parseInt(tcNo.charAt(0)+"") +
+                Integer.parseInt(tcNo.charAt(1)+"") +
+                Integer.parseInt(tcNo.charAt(2)+"") +
+                Integer.parseInt(tcNo.charAt(3)+"") +
+                Integer.parseInt(tcNo.charAt(4)+"") +
+                Integer.parseInt(tcNo.charAt(5)+"") +
+                Integer.parseInt(tcNo.charAt(6)+"") +
+                Integer.parseInt(tcNo.charAt(7)+"") +
+                Integer.parseInt(tcNo.charAt(8)+"") +
+                Integer.parseInt(tcNo.charAt(9)+""))  % 10+ "";
 
+        tcNo += eleventhNum;
+        return tcNo;
+    }
 
     public ArrayList<Person> getList() throws Exception {
         Fairy fairy = Fairy.create();
@@ -58,20 +90,20 @@ public class DataGenerator{
         double secondPartOfFemale = numOfFemale - firstPartOfFemale;
 
         for(int i=0; i<firstPartOfMale; i++){
-            Person person = fairy.person(PersonProperties.maxAge((int)maleMax),PersonProperties.male());
+            Person person = fairy.person(PersonProperties.maxAge((int)maleMax),PersonProperties.male(),PersonProperties.withNationalIdentificationNumber(getRandomNationalIdentificationNumber()));
             list.add(person);
         }
         for(int i=0; i<secondPartOfMale; i++){
-            Person person = fairy.person(PersonProperties.male());
+            Person person = fairy.person(PersonProperties.male(),PersonProperties.withNationalIdentificationNumber(getRandomNationalIdentificationNumber()));
             list.add(person);
         }
 
         for(int i=0; i<firstPartOfFemale; i++){
-            Person person = fairy.person(PersonProperties.maxAge((int)femaleMax),PersonProperties.female());
+            Person person = fairy.person(PersonProperties.maxAge((int)femaleMax),PersonProperties.female(),PersonProperties.withNationalIdentificationNumber(getRandomNationalIdentificationNumber()));
             list.add(person);
         }
         for(int i=0; i<secondPartOfFemale; i++){
-            Person person = fairy.person(PersonProperties.female());
+            Person person = fairy.person(PersonProperties.female(),PersonProperties.withNationalIdentificationNumber(getRandomNationalIdentificationNumber()));
             list.add(person);
         }
 

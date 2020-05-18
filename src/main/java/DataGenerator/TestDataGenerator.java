@@ -6,7 +6,7 @@ import com.devskiller.jfairy.producer.person.PersonProperties;
 
 import java.util.ArrayList;
 
-public class DataGeneratorFairy {
+public class TestDataGenerator {
     public static void main(String[] args) {
         try{
             DataGenerator dataGen = new DataGenerator(100);
@@ -26,7 +26,7 @@ public class DataGeneratorFairy {
         double numOfMale = 0;
         double numOfFemale = 0;
         for(int i=0; i<list.size(); i++){
-            System.out.println((i+1) + ". Cinsiyet : " + list.get(i).getSex() + " Yaş : " + list.get(i).getAge() + " " + list.get(i).getFullName());
+            System.out.println((i+1) + ". Cinsiyet : " + list.get(i).getSex() + " Yaş : " + list.get(i).getAge() + " " + list.get(i).getFullName()+ " TcNo : " + list.get(i).getNationalIdentificationNumber());
             if(list.get(i).getSex().toString().equals("MALE"))
                 numOfMale++;
             else
