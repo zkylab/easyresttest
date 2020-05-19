@@ -1,0 +1,5 @@
+[
+    { "string": "<=", "prop": "lenght", "value": "255" },
+    { "int": "!=", "prop": "isnull", "value": "null" },
+    { "string": "!=", "prop": "isnull", "value": "null" }
+]
