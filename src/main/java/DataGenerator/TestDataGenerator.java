@@ -4,6 +4,7 @@ import com.devskiller.jfairy.Fairy;
 import com.devskiller.jfairy.producer.person.Person;
 import com.devskiller.jfairy.producer.person.PersonProperties;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 
 public class TestDataGenerator {
@@ -16,9 +17,10 @@ public class TestDataGenerator {
             ArrayList<Person> list =  dataGen.getList();
             printList(list);
             // dataGen.generateDataWithRegex("[a-z1-9]{10}",10,"text.txt");
+           // ArrayList<Person> persons = dataGen.generateWithClass(Person.class,10);
         }
         catch (Exception e){
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
     }

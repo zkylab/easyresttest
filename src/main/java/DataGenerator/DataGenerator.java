@@ -10,12 +10,15 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Random;
 
 public class DataGenerator{
-    private double total = -1;
+    private int total = -1;
     private double maleRate = -1;
     private double femaleRate = -1;
 
@@ -93,6 +96,72 @@ public class DataGenerator{
         }
     }
 
+    public <E> ArrayList<E> generateWithClass(Class className, int num) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        Constructor[] cons = className.getConstructors();
+        Method[] methods = className.getMethods();
+        ArrayList<E> list = new ArrayList<>(num);
+        for(int i=0; i<num; i++){
+            E obj = null;
+            for(Constructor con : cons){
+                Object[] params = generateParams(con.getParameterTypes());
+                obj =  (E) con.newInstance(params);
+
+            }
+            list.add(obj);
+        }
+
+
+
+        return list;
+    }
+    private Object[] generateParams(Class[] paramList){
+        int i = 0;
+        Random rnd = new Random();
+        Object[] params = new Object[paramList.length];
+        for(Class param : paramList){
+            String paramName = param.getName();
+            if(paramName.equals("boolean")){
+                params[i] = rnd.nextBoolean();
+            }
+            else if(paramName.equals("char")){
+                int num = rnd.nextInt(93) + 33;
+                Character charac = (char)num;
+                params[i] = charac;
+             }
+            else if(paramName.equals("byte")){
+                int num = rnd.nextInt(255) -128;
+                Byte byt = (byte)num;
+                params[i] = byt;
+            }
+            else if(paramName.equals("short")){
+                int num = rnd.nextInt(65553) - 32768;
+                Short sh = (short)num;
+                params[i] = sh;
+            }
+            else if(paramName.equals("int")){
+                params[i] = rnd.nextInt();
+            }
+            else if(paramName.equals("long")){
+                params[i] = rnd.nextLong();
+            }
+            else if(paramName.equals("float")){
+                params[i] = rnd.nextFloat();
+            }
+            else if(paramName.equals("double")){
+                params[i] = rnd.nextDouble();
+            }
+            else if(paramName.equals("java.lang.String")){
+                FakeValuesService fakeValuesService = new FakeValuesService(new Locale("en-GB"), new RandomService());
+                String s = fakeValuesService.letterify("?????");
+                params[i] = s;
+            }
+            else{
+                params[i] = null;
+            }
+            i++;
+        }
+        return params;
+    }
     public ArrayList<Person> getList() throws Exception {
         Fairy fairy = Fairy.create();
         ArrayList<Person> list = new ArrayList<Person>((int)total);
