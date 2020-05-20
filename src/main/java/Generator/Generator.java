@@ -48,12 +48,12 @@ public class Generator {
      * @param fileName for java file name.
      *
      * @return the path of the generated file.
-     * @throws Exception this throws this very general exception since it is the main method that every submethod returns too. Hence, Mother of all Exception.
+     * @throws Exception this throws this very general exception since it is the main method that every submethod returns to. Hence, Mother of all Exceptions.
      *
      */
     public String runGenerator(String fileName, String hostname) throws Exception {
         if(parsedServices == null)
-            throw new ServiceUnavailableException("Parser Service is null.");
+            throw new NullPointerException("Parser Service is null.");
         setHostname(hostname);
         generate(fileName);
         if(currentJavaFile != null)
@@ -62,6 +62,7 @@ public class Generator {
     }
 
     /**
+     * Set the hostname if you dont want to change every single testscases hostname later.
      *
      * @param hostname for hostname. Duh.
      */
@@ -167,7 +168,7 @@ public class Generator {
                 continue;
             switch (currentPar.getIn()) {
                 case "path":
-                    currentMethod = writeToJavaVariable("parameters", "pathparam(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "pathParam(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
                     currentMethod = writeToJavaVariable("testURL", "\"" + (hostname + endpointPath) + "\"", currentMethod);
                     break;
                 case "formData":

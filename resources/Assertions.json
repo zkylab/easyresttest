@@ -1,5 +1,5 @@
 [
-    { "string": "<=", "prop": "lenght", "value": "255" },
-    { "int": "!=", "prop": "isnull", "value": "null" },
-    { "string": "!=", "prop": "isnull", "value": "null" }
+    { "type": "String", "operator": "<=", "prop": "length", "value": "255" },
+    { "type": "Integer", "operator": "!=", "prop": "isnull", "value": "false" },
+    { "type": "String", "operator": "!=", "prop": "isnull", "value": "false" }
 ]

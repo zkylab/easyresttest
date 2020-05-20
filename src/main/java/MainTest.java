@@ -1,3 +1,4 @@
+import Asserter.AssertionGenerator;
 import DataManager.DataManager;
 import Generator.Generator;
 import Parser.Parser;
@@ -28,5 +29,9 @@ public class MainTest {
 
         String host = DataManager.getInstance().getHost();
         System.out.println(host);
+
+        AssertionGenerator gen = AssertionGenerator.getInstance();
+        gen.runAssertionGenerator();
+
     }
 }
