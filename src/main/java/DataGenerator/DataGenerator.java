@@ -61,7 +61,16 @@ public class DataGenerator{
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(output);
+        try{
+            BufferedWriter writer = new BufferedWriter(new FileWriter("data.txt"));
+            writer.write(output);
+
+            writer.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private String generateDataWithoutInnerRatio(int total, String genType, int ratio){
