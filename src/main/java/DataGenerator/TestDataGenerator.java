@@ -9,7 +9,9 @@ import java.util.ArrayList;
 
 public class TestDataGenerator {
     public static void main(String[] args) {
-        try{
+        DataGenerator datagen = new DataGenerator(10);
+        datagen.readJSON();
+        /*try{
             DataGenerator dataGen = new DataGenerator(100);
             dataGen.setGenderRate(40,60);
             dataGen.setMaleAgeRate(20,3);
@@ -21,7 +23,7 @@ public class TestDataGenerator {
         }
         catch (Exception e){
             e.printStackTrace();
-        }
+        }*/
 
     }
     public static void printList(ArrayList<Person> list){

@@ -5,17 +5,18 @@ import com.devskiller.jfairy.producer.person.Person;
 import com.devskiller.jfairy.producer.person.PersonProperties;
 import com.github.javafaker.service.FakeValuesService;
 import com.github.javafaker.service.RandomService;
+import com.google.inject.internal.cglib.core.$MethodWrapper;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import javax.naming.event.ObjectChangeListener;
+import java.io.*;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Random;
+import java.util.*;
 
 public class DataGenerator{
     private int total = -1;
@@ -26,6 +27,98 @@ public class DataGenerator{
     private double femaleRateNum = -1, femaleMax = -1;
 
     private ArrayList<Person> list;
+
+
+    public void readJSON(){
+        JSONParser parser = new JSONParser();
+        String output = "";
+        int total = 100;
+        try {
+            Object obj = parser.parse(new FileReader("C:\\Users\\dogru\\IdeaProjects\\easyresttest\\src\\main\\sample-data\\dataGen.json"));
+            String genType = "";
+            JSONObject jsonObject = (JSONObject) obj;
+            for(Object jsonKey : jsonObject.keySet()){
+                if(jsonKey.toString().equals("genType"))
+                    genType = jsonObject.get(jsonKey).toString();
+                if(jsonKey.toString().equals("fields")){
+                    HashMap fields = (HashMap)jsonObject.get(jsonKey);
+                    for(Object fieldKey : fields.keySet()){
+                        String type = fieldKey.toString();
+                        HashMap typeHashMap = (HashMap)fields.get(fieldKey);
+                        int ratio = Integer.parseInt(typeHashMap.get("ratio").toString());
+                        if(typeHashMap.get("innerRatio") == null){
+                            String out = generateDataWithoutInnerRatio(total,type,ratio);
+                            output += out;
+                        }
+                        else{
+                            String out =  generateDataWithInnerRatio(total,type,ratio,(HashMap)typeHashMap.get("innerRatio"));
+                            output += out;
+                        }
+                    }
+                }
+            }
+            System.out.println();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println(output);
+    }
+
+    private String generateDataWithoutInnerRatio(int total, String genType, int ratio){
+        Fairy fairy = Fairy.create();
+        String output = "";
+        for(int i=0; i<total*ratio/100; i++){
+            if(genType.equals("female")){
+                Person person = fairy.person(PersonProperties.female());
+
+                output += person.getFullName() + " " + person.getSex() + " " + person.getAge() + "\n";
+            }
+            else{
+                Person person = fairy.person(PersonProperties.male());
+                output += person.getFullName() + " " + person.getSex() + " " + person.getAge() + "\n";
+            }
+
+        }
+        return output;
+    }
+    private String generateDataWithInnerRatio(int total,String genType, int ratio, HashMap innerRatio){
+        Random rnd = new Random();
+        Fairy fairy = Fairy.create();
+        String output  = "";
+        String genType2 = innerRatio.get("genType").toString();
+        HashMap fields = (HashMap)innerRatio.get("fields");
+
+        for(Object key : fields.keySet()){
+            HashMap map = (HashMap)fields.get(key);
+            int innerRatioInt = Integer.parseInt(map.get("ratio").toString());
+            ArrayList<JSONObject> list = (ArrayList)map.get("props");
+            for(JSONObject obj : list){
+                String cond = obj.get("condition").toString();
+                String value = obj.get("value").toString();
+                int val1 = Integer.parseInt(value.substring(0,value.indexOf("-")));
+                int val2 = Integer.parseInt(value.substring(value.indexOf("-")+1));
+                if(cond.equals("between")){
+                    int size = (total*ratio/100)*innerRatioInt/100/list.size();
+                    for(int i=0; i<(total*ratio/100)*innerRatioInt/100/list.size(); i++){
+                        if(genType.equals("female")){
+                            Person person  = fairy.person(PersonProperties.female());
+                            int age = rnd.nextInt(val2-val1) + val1;
+                            output += person.getFullName() + " " + person.getSex() + " " + age + "\n";
+                        }
+                        else{
+                            Person person  = fairy.person(PersonProperties.male());
+                            int age = rnd.nextInt(val2-val1) + val1;
+                            output += person.getFullName() + " " + person.getSex() + " " + age + "\n";
+                        }
+
+
+                    }
+                }
+
+            }
+        }
+        return output;
+    }
 
     public DataGenerator(int totalNumOfPeople){
         this.total = totalNumOfPeople;
