@@ -5,19 +5,25 @@ import com.devskiller.jfairy.producer.person.Person;
 import com.devskiller.jfairy.producer.person.PersonProperties;
 import com.github.javafaker.service.FakeValuesService;
 import com.github.javafaker.service.RandomService;
-import com.google.inject.internal.cglib.core.$MethodWrapper;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
-import javax.naming.event.ObjectChangeListener;
 import java.io.*;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
+class PersonData{
+    private String name = "";
+    private String gender = "";
+    private int age;
+
+    public PersonData(String name, String gender, int age){
+        this.name = name;
+        this.gender = gender;
+        this.age = age;
+    }
+}
 public class DataGenerator{
     private int total = -1;
     private double maleRate = -1;
@@ -25,16 +31,18 @@ public class DataGenerator{
 
     private double maleRateNum = -1, maleMax = -1;
     private double femaleRateNum = -1, femaleMax = -1;
-
+    private String pathName = "";
     private ArrayList<Person> list;
 
-
+    public void setJSONPath(String pathName){
+        this.pathName = pathName;
+    }
     public void readJSON(){
         JSONParser parser = new JSONParser();
         String output = "";
         int total = 100;
         try {
-            Object obj = parser.parse(new FileReader("C:\\Users\\dogru\\IdeaProjects\\easyresttest\\src\\main\\sample-data\\dataGen.json"));
+            Object obj = parser.parse(new FileReader(pathName));
             String genType = "";
             JSONObject jsonObject = (JSONObject) obj;
             for(Object jsonKey : jsonObject.keySet()){
@@ -61,6 +69,8 @@ public class DataGenerator{
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println(output);
+        /* txt olarak yazma kısmı
         try{
             BufferedWriter writer = new BufferedWriter(new FileWriter("data.txt"));
             writer.write(output);
@@ -69,8 +79,36 @@ public class DataGenerator{
         }
         catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
+        ArrayList<PersonData> list = convertDataToPersonClass(output);
+
+    }
+
+    private ArrayList<PersonData> convertDataToPersonClass(String output){
+        ArrayList<PersonData> list = new ArrayList<>();
+        while(output.contains("\n")){
+            String firstName = "";
+            String lastName = "";
+            String gender = "";
+            int age;
+
+            firstName = output.substring(0,output.indexOf(" "));
+            output = output.substring(output.indexOf(" ")+1);
+
+            lastName = output.substring(0,output.indexOf(" "));
+            output = output.substring(output.indexOf(" ")+1);
+
+            gender = output.substring(0,output.indexOf(" "));
+            output = output.substring(output.indexOf(" ")+1);
+
+            age = Integer.parseInt(output.substring(0,output.indexOf("\n")));
+            output = output.substring(output.indexOf("\n")+1);
+
+            PersonData person = new PersonData(firstName + " " + lastName,gender,age);
+            list.add(person);
+        }
+        return list;
     }
 
     private String generateDataWithoutInnerRatio(int total, String genType, int ratio){
