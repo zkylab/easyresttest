@@ -23,6 +23,24 @@ class PersonData{
         this.gender = gender;
         this.age = age;
     }
+    public String getName() {
+        return name;
+    }
+    public String getGender() {
+        return gender;
+    }
+    public int getAge() {
+        return age;
+    }
+    public void setAge(int age) {
+        this.age = age;
+    }
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
 }
 public class DataGenerator{
     private int total = -1;
@@ -42,7 +60,7 @@ public class DataGenerator{
         String output = "";
         int total = 100;
         try {
-            Object obj = parser.parse(new FileReader(pathName));
+            Object obj = parser.parse(new FileReader("C:\\Users\\dogru\\IdeaProjects\\easyresttest\\src\\main\\sample-data\\dataGen.json"));
             String genType = "";
             JSONObject jsonObject = (JSONObject) obj;
             for(Object jsonKey : jsonObject.keySet()){
@@ -65,7 +83,6 @@ public class DataGenerator{
                     }
                 }
             }
-            System.out.println();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -82,7 +99,6 @@ public class DataGenerator{
         }*/
 
         ArrayList<PersonData> list = convertDataToPersonClass(output);
-
     }
 
     private ArrayList<PersonData> convertDataToPersonClass(String output){
@@ -115,16 +131,16 @@ public class DataGenerator{
         Fairy fairy = Fairy.create();
         String output = "";
         for(int i=0; i<total*ratio/100; i++){
-            if(genType.equals("female")){
-                Person person = fairy.person(PersonProperties.female());
-
-                output += person.getFullName() + " " + person.getSex() + " " + person.getAge() + "\n";
+            switch (genType){
+                case "female":
+                    Person personFemale = fairy.person(PersonProperties.female());
+                    output += personFemale.getFullName() + " " + personFemale.getSex() + " " + personFemale.getAge() + "\n";
+                    break;
+                case "male":
+                    Person personMale = fairy.person(PersonProperties.male());
+                    output += personMale.getFullName() + " " + personMale.getSex() + " " + personMale.getAge() + "\n";
+                    break;
             }
-            else{
-                Person person = fairy.person(PersonProperties.male());
-                output += person.getFullName() + " " + person.getSex() + " " + person.getAge() + "\n";
-            }
-
         }
         return output;
     }
@@ -147,18 +163,18 @@ public class DataGenerator{
                 if(cond.equals("between")){
                     int size = (total*ratio/100)*innerRatioInt/100/list.size();
                     for(int i=0; i<(total*ratio/100)*innerRatioInt/100/list.size(); i++){
-                        if(genType.equals("female")){
-                            Person person  = fairy.person(PersonProperties.female());
-                            int age = rnd.nextInt(val2-val1) + val1;
-                            output += person.getFullName() + " " + person.getSex() + " " + age + "\n";
+                        switch (genType){
+                            case "female":
+                                Person personFemale  = fairy.person(PersonProperties.female());
+                                int ageFemale = rnd.nextInt(val2-val1) + val1;
+                                output += personFemale.getFullName() + " " + personFemale.getSex() + " " + ageFemale + "\n";
+                                break;
+                            case "male":
+                                Person personMale  = fairy.person(PersonProperties.male());
+                                int ageMale = rnd.nextInt(val2-val1) + val1;
+                                output += personMale.getFullName() + " " + personMale.getSex() + " " + ageMale + "\n";
+                                break;
                         }
-                        else{
-                            Person person  = fairy.person(PersonProperties.male());
-                            int age = rnd.nextInt(val2-val1) + val1;
-                            output += person.getFullName() + " " + person.getSex() + " " + age + "\n";
-                        }
-
-
                     }
                 }
 
