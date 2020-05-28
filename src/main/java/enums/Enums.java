@@ -1,5 +1,7 @@
 package enums;
 
+import java.util.NoSuchElementException;
+
 public class Enums {
 
     /**
@@ -28,6 +30,54 @@ public class Enums {
     public enum asserterPropType {
         length,
         isnull,
-        value,
+        equals,
+        contains,
+    }
+
+    public enum LogicalOperator {
+        LESS("<") {
+            @Override public boolean apply(int left, int right) {
+                return left < right;
+            }
+        },
+        EQUAL("==") {
+            @Override public boolean apply(int left, int right) {
+                return left == right;
+            }
+        },
+        LESSOREQUAL("<=") {
+            @Override public boolean apply(int left, int right) {
+                return left <= right;
+            }
+        },
+        MORE(">") {
+            @Override public boolean apply(int left, int right) {
+                return left > right;
+            }
+        },
+        MOREOREQUAL("<") {
+            @Override public boolean apply(int left, int right) {
+                return left >= right;
+            }
+        },
+        NOTEQUAL("!=") {
+            @Override public boolean apply(int left, int right) {
+                return left != right;
+            }
+        };
+
+        private final String operator;
+        private LogicalOperator(String operator) {
+            this.operator = operator;
+        }
+
+        public static LogicalOperator parseOperator(String operator) {
+            for (LogicalOperator op : values()) {
+                if (op.operator.equals(operator)) return op;
+            }
+            throw new NoSuchElementException(String.format("Unknown operator [%s]", operator));
+        }
+
+        public abstract boolean apply(int left, int right);
     }
 }

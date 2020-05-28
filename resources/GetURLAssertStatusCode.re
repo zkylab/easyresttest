@@ -8,4 +8,5 @@ public void %testcaseName() {
     then().
         assertThat().
         statusCode(%statusCode).
+        %assertions
 }

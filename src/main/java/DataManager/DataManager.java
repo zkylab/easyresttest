@@ -13,7 +13,6 @@ public class DataManager {
     private DataManager() {
 
     }
-
     public static DataManager getInstance() {
         if (dataManager_instance == null)
             return dataManager_instance = new DataManager();
@@ -43,5 +42,4 @@ public class DataManager {
     public String getHost(){
         return host;
     }
-
 }

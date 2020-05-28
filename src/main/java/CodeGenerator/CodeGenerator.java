@@ -1,5 +1,6 @@
-package Generator;
+package CodeGenerator;
 
+import AssertionObjects.AssertionSet;
 import DataManager.DataManager;
 import Parser.Parser;
 import SwaggerObjects.Service;
@@ -8,7 +9,6 @@ import SwaggerObjects.ServiceResponse;
 import enums.Enums;
 import io.restassured.http.ContentType;
 
-import javax.naming.ServiceUnavailableException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,9 +17,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
-public class Generator {
+public class CodeGenerator {
     //Generator class instance for glorious code generation stuff. Neat.
-    private static Generator generator_instance = null;
+    private static CodeGenerator codeGenerator_instance = null;
     //Parsed services from Parser class.
     private static ArrayList<Service> parsedServices = null;
     //This tells the Generator class to which folder it should output its generated .java files.
@@ -36,10 +36,10 @@ public class Generator {
      * Get the generator instance.
      *
      */
-    public static Generator getInstance() {
-        if(generator_instance == null)
-            generator_instance = new Generator();
-        return generator_instance;
+    public static CodeGenerator getInstance() {
+        if(codeGenerator_instance == null)
+            codeGenerator_instance = new CodeGenerator();
+        return codeGenerator_instance;
     }
 
     /**
@@ -82,6 +82,7 @@ public class Generator {
         ContentType requestContentType, responseContentType;
         ArrayList<ServiceParameter> serviceParameters;
         ServiceResponse response;
+        DataManager dataManager = DataManager.getInstance();
         if(currentJavaFile == null)
             throw new FileNotFoundException("Java file not found.");
         String currentClass = appendTestFunction(new File(Paths.get("resources").toAbsolutePath().toString() + "/" + Enums.testClassType.GeneralRestAssuredContainer.toString() + ".re"));
@@ -118,11 +119,15 @@ public class Generator {
             //Get into service parameters no matter what, since it needs to delete the var string even if no parameters has been given.
             currentMethod = insertServiceParameters(serviceParameters, currentService.getEndPointPath(), method, currentMethod);
 
+            //GENERATE ASSERTIONS-----------------------------------------------------------------------------------------------------------------------
+            currentMethod = insertAssertionParameters(dataManager.getAsserts(), currentMethod);
+
             response = currentService.getResponse();
             if(response != null)
                 currentMethod = writeToJavaVariable("statusCode", Integer.toString(response.getStatusCode()), currentMethod);
             else
                 System.out.println("Status code from response is null. Skipping.");
+
 
             currentMethod += "\r\n\r\n";
             currentMethod = currentMethod.replaceAll("%parameters", "");
@@ -189,6 +194,26 @@ public class Generator {
     }
 
     /**
+     * Insert assertion acquired from Assertion Parser class.
+     *
+     * @param assertionSets for getting AssertionSet objects
+     * @param currentMethod current method to work on.
+     * @return string of interloped assertions.
+     */
+    private String insertAssertionParameters(ArrayList<AssertionSet> assertionSets, String currentMethod) {
+        for(AssertionSet assertionSet : assertionSets) {
+            switch (assertionSet.getIn()) {
+                case "body":
+                    currentMethod = writeToJavaVariable("assertions", "body().", currentMethod);
+                    break;
+                case "header":
+                    break;
+            }
+        }
+        return currentMethod;
+    }
+
+    /**
      * Set the template function file to use.
      *
      * @param testCaseType for getting the method template type.
@@ -206,6 +231,41 @@ public class Generator {
      */
     public void setCustomOutputFolder(File location) {
         rootOutputLocation = location.toPath();
+    }
+
+    /**
+     * Get the current assertionset under generator and constuct the rest assured operators.
+     *
+     * @param asserterPropType get the assertsets property type.
+     * @param assertionSet get the assertion set object to construct the assertion(Duh.)
+     * @return
+     */
+    private String generateAssertionStatement(Enums.asserterPropType asserterPropType, AssertionSet assertionSet) {
+        String convertedOperator = null;
+        switch (asserterPropType) {
+            case equals:
+                convertedOperator = "\"" + assertionSet.getType() + "\", ";
+                convertedOperator += "equalTo(" + assertionSet.getValue() + ")";
+                break;
+            case isnull:
+                convertedOperator = "\"" + assertionSet.getType() + "\", ";
+                if(Boolean.parseBoolean(assertionSet.getValue()))
+                    convertedOperator += "NullValue()";
+                else
+                    convertedOperator += "notNullValue()";
+                break;
+            case length:
+                convertedOperator = "\"" + assertionSet.getType() + ".size()\", ";
+                convertedOperator += "is(" + Integer.parseInt(assertionSet.getValue()) + ")";
+                break;
+            case contains:
+                convertedOperator = "containsString(\"" + assertionSet.getValue() + "\")";
+                break;
+            default:
+                System.err.println("Prop file could not be matched. Skipping.");
+                break;
+        }
+        return convertedOperator;
     }
 
     /**

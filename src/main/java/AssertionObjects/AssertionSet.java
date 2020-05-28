@@ -7,6 +7,7 @@ public class AssertionSet {
     private String operator;
     private Enums.asserterPropType prop;
     private String value;
+    private String in;
 
     public String getType() {
         return type;
@@ -38,5 +39,13 @@ public class AssertionSet {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getIn() {
+        return in;
+    }
+
+    public void setIn(String in) {
+        this.in = in;
     }
 }

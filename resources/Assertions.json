@@ -1,5 +1,6 @@
 [
-    { "type": "String", "operator": "<=", "prop": "length", "value": "255" },
-    { "type": "Integer", "operator": "!=", "prop": "isnull", "value": "false" },
-    { "type": "String", "operator": "!=", "prop": "isnull", "value": "false" }
+    { "in": "body", "type": "String", "operator": "<=", "prop": "length", "value": "255" },
+    { "in": "body", "type": "Integer", "operator": "!=", "prop": "isnull", "value": "false" },
+    { "in": "header", "type": "String", "operator": "!=", "prop": "isnull", "value": "false" },
+    { "in": "body",  "type": "id", "operator": "<", "prop": "length", "value": "11" }
 ]

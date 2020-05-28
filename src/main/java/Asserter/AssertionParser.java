@@ -1,6 +1,7 @@
 package Asserter;
 
 import AssertionObjects.AssertionSet;
+import DataManager.DataManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
@@ -10,41 +11,25 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class AssertionGenerator {
+public class AssertionParser {
     private static File jsonFile = new File(Paths.get("resources").toAbsolutePath().toString() + "/Assertions.json");
-    private static AssertionGenerator assertion_instance = null;
+    private static AssertionParser assertion_instance = null;
 
-    public static AssertionGenerator getInstance() {
+    public static AssertionParser getInstance() {
         if(assertion_instance == null)
-            assertion_instance = new AssertionGenerator();
+            assertion_instance = new AssertionParser();
         return assertion_instance;
     }
 
     public void runAssertionGenerator() throws Exception {
         if(jsonFile == null)
             throw new FileNotFoundException("JSON file is null");
-        generateAsserts();
+        DataManager dataManager = DataManager.getInstance();
+        dataManager.setAsserts(parseAsserts());
+        System.out.println("Assertions parsed.");
     }
 
-    private void generateAsserts() throws FileNotFoundException {
-        ArrayList<AssertionSet> parsedRaw = parseAssertionsRaw();
-        System.out.println(parsedRaw);
-    }
-
-    /**
-     * Set the json file required for generation assertions codes. Defaulted to Assertions json file under Generated folder.
-     *
-     * @param path
-     */
-    public void setCustomAssertionConfFile(String path) {
-        if(path != null)
-            jsonFile = new File(path);
-        else
-            System.out.println("Path is null. Default path is chosen instead.");
-    }
-
-
-    private ArrayList<AssertionSet> parseAssertionsRaw() throws FileNotFoundException {
+    private ArrayList<AssertionSet> parseAsserts() throws FileNotFoundException {
         if(jsonFile != null) {
             try {
                 return new ArrayList<>(Arrays.asList(new ObjectMapper().readValue(jsonFile, AssertionSet[].class)));
@@ -53,5 +38,18 @@ public class AssertionGenerator {
             }
         }
         throw new FileNotFoundException("JSON file not found");
+    }
+
+    /**
+     * Set the json file required for generation assertions codes. Defaulted to Assertions json file under Generated folder.
+     * Must set before parse method to actually matter.
+     *
+     * @param path
+     */
+    public void setCustomAssertionConfFile(String path) {
+        if(path != null)
+            jsonFile = new File(path);
+        else
+            System.out.println("Path is null. Default path is chosen instead.");
     }
 }
