@@ -215,6 +215,8 @@ public class CodeGenerator {
                     break;
             }
         }
+        currentMethod = currentMethod.replaceAll("%assertions", "");
+        currentMethod = currentMethod.replace(". \r\n\t \r\n}", "; \r\n}");
         return currentMethod;
     }
 

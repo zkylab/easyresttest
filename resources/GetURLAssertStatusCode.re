@@ -4,7 +4,7 @@ public void %testcaseName() {
     given().
     %parameters
     when().
-        get(%testURL).
+        %reqType(%testURL).
     then().
         assertThat().
         statusCode(%statusCode).
