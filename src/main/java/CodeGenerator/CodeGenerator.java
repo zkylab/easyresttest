@@ -131,6 +131,7 @@ public class CodeGenerator {
 
             currentMethod += "\r\n\r\n";
             currentMethod = currentMethod.replaceAll("%parameters", "");
+            currentMethod = currentMethod.replaceAll("%assertions", "");
             currentMethod = currentMethod.replaceAll("%testURL", "\"" + hostname + "\"");
             currentClass = writeToJavaVariable("tests", currentMethod + "\r\n%tests", currentClass);
             System.out.println("Java file " + fileName + " appended.");
@@ -173,20 +174,20 @@ public class CodeGenerator {
                 continue;
             switch (currentPar.getIn()) {
                 case "path":
-                    currentMethod = writeToJavaVariable("parameters", "pathParam(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "pathParam(\"" + currentPar.getName() + "\", DATA).\r\n\t%parameters", currentMethod);
                     currentMethod = writeToJavaVariable("testURL", "\"" + (hostname + endpointPath) + "\"", currentMethod);
                     break;
                 case "formData":
-                    currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA).\r\n\t%parameters", currentMethod);
                     break;
                 case "query":
-                    currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA).\r\n\t%parameters", currentMethod);
                     break;
                 case "body":
-                    currentMethod = writeToJavaVariable("parameters", "body(BODYDATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "body(BODYDATA).\r\n\t%parameters", currentMethod);
                     break;
                 case "header":
-                    currentMethod = writeToJavaVariable("parameters", "header(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "header(\"" + currentPar.getName() + "\", DATA).\r\n\t%parameters", currentMethod);
                     break;
             }
         }
@@ -204,9 +205,13 @@ public class CodeGenerator {
         for(AssertionSet assertionSet : assertionSets) {
             switch (assertionSet.getIn()) {
                 case "body":
-                    currentMethod = writeToJavaVariable("assertions", "body().", currentMethod);
+                    currentMethod = writeToJavaVariable("assertions", "body(" + generateAssertionStatement(assertionSet) + "). \r\n\t %assertions", currentMethod);
                     break;
                 case "header":
+                    currentMethod = writeToJavaVariable("assertions", "header(" + generateAssertionStatement(assertionSet) + "). \r\n\t %assertions", currentMethod);
+                    break;
+                default:
+                    System.err.println("In parameter not found! Skipping...");
                     break;
             }
         }
@@ -236,13 +241,13 @@ public class CodeGenerator {
     /**
      * Get the current assertionset under generator and constuct the rest assured operators.
      *
-     * @param asserterPropType get the assertsets property type.
      * @param assertionSet get the assertion set object to construct the assertion(Duh.)
-     * @return
+     * @return converted operator.
      */
-    private String generateAssertionStatement(Enums.asserterPropType asserterPropType, AssertionSet assertionSet) {
+    private String generateAssertionStatement(AssertionSet assertionSet) {
         String convertedOperator = null;
-        switch (asserterPropType) {
+
+        switch (assertionSet.getProp()) {
             case equals:
                 convertedOperator = "\"" + assertionSet.getType() + "\", ";
                 convertedOperator += "equalTo(" + assertionSet.getValue() + ")";
@@ -250,13 +255,38 @@ public class CodeGenerator {
             case isnull:
                 convertedOperator = "\"" + assertionSet.getType() + "\", ";
                 if(Boolean.parseBoolean(assertionSet.getValue()))
-                    convertedOperator += "NullValue()";
+                    convertedOperator += "nullValue()";
                 else
                     convertedOperator += "notNullValue()";
                 break;
             case length:
-                convertedOperator = "\"" + assertionSet.getType() + ".size()\", ";
-                convertedOperator += "is(" + Integer.parseInt(assertionSet.getValue()) + ")";
+                String operator;
+                switch (assertionSet.getOperator()) {
+                    case "==":
+                        operator = "is";
+                        break;
+                    case ">":
+                        operator = "greaterThan";
+                        break;
+                    case ">=":
+                        operator = "greaterThanOrEqualTo";
+                        break;
+                    case "<=":
+                        operator = "lessThanOrEqualTo";
+                        break;
+                    case "<":
+                        operator = "lessThan";
+                        break;
+                    case "!=":
+                        operator = "not";
+                        break;
+                    default:
+                        operator = "OperatorNotFound";
+                        System.err.println("Operator not found!!. Skipping...");
+                        break;
+                }
+                convertedOperator = "\"size()\", ";
+                convertedOperator += operator + "(" + Integer.parseInt(assertionSet.getValue()) + ")";
                 break;
             case contains:
                 convertedOperator = "containsString(\"" + assertionSet.getValue() + "\")";
