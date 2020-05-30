@@ -1,0 +1,70 @@
+[
+    {"type": "Integer", "length":"5", "range":[
+        {"condition":"between", "value":"10000 - 25000"},
+        {"condition":"lessthan", "value":"55000"},
+        {"condition":"morethan", "value":"55000"},
+        {"condition":"between", "value":"-10000 - 25000"},
+        {"condition":"lessthan", "value":"-55000"},
+        {"condition":"morethan", "value":"-55000"}
+    ]
+    },
+    {"type": "Short", "length":"3", "range":[
+        {"condition":"between", "value":"100 - 250"},
+        {"condition":"lessthan", "value":"550"},
+        {"condition":"morethan", "value":"550"},
+        {"condition":"between", "value":"-100 - 250"},
+        {"condition":"lessthan", "value":"-550"},
+        {"condition":"morethan", "value":"-550"}
+    ]
+    },
+    {"type": "Character", "length":"1", "range":[
+        {"condition":"UpperCase", "value":"plain"},
+        {"condition":"LowerCase", "value":"special"},
+        {"condition":"LowerCase", "value":"plain"},
+        {"condition":"null", "value":"all"}
+    ]
+    },
+    {"type": "Long", "length":"19", "range":[
+        {"condition":"between", "value":"1106856138414141414 - 2106856138414141414"},
+        {"condition":"lessthan", "value":"9106856138414141414"},
+        {"condition":"morethan", "value":"5106856138414141414"},
+        {"condition":"between", "value":"-1106856138414141414 - 2106856138414141414"},
+        {"condition":"lessthan", "value":"-5106856138414141414"},
+        {"condition":"morethan", "value":"-5106856138414141414"}
+    ]
+    },
+    {"type":"String", "length":"5", "range":[
+        {"condition":"UpperCase", "value":"plain"},
+        {"condition":"LowerCase", "value":"special"},
+        {"condition":"LowerCase", "value":"plain"},
+        {"condition":"null", "value":"all"}
+    ]},
+
+    {"type":"Double", "length":"6", "range":[
+        {"condition":"between", "value":"100.132 - 250.132"},
+        {"condition":"lessthan", "value":"550.132"},
+        {"condition":"morethan", "value":"550.132"},
+        {"condition":"between", "value":"-100.132 - 250.132"},
+        {"condition":"lessthan", "value":"-550.132"},
+        {"condition":"morethan", "value":"-550.132"}
+    ]},
+    {"type":"Float", "length":"6", "range":[
+        {"condition":"between", "value":"100.132 - 250.132"},
+        {"condition":"lessthan", "value":"550.132"},
+        {"condition":"morethan", "value":"550.132"},
+        {"condition":"between", "value":"-100.132 - 250.132"},
+        {"condition":"lessthan", "value":"-550.132"},
+        {"condition":"morethan", "value":"-550.132"}
+    ]},
+    {"type":"Boolean"},
+    {"type": "Byte", "length":"2", "range":[
+        {"condition":"between", "value":"10 - 25"},
+        {"condition":"lessthan", "value":"55"},
+        {"condition":"morethan", "value":"55"},
+        {"condition":"between", "value":"-10 - 25"},
+        {"condition":"lessthan", "value":"-55"},
+        {"condition":"morethan", "value":"-55"}
+    ]
+    }
+]
+    

@@ -9,21 +9,9 @@ import java.util.ArrayList;
 
 public class TestDataGenerator {
     public static void main(String[] args) {
-        DataGenerator datagen = new DataGenerator(10);
-        datagen.readJSON();
-        /*try{
-            DataGenerator dataGen = new DataGenerator(100);
-            dataGen.setGenderRate(40,60);
-            dataGen.setMaleAgeRate(20,3);
-            dataGen.setFemaleAgeRate(20,3);
-            ArrayList<Person> list =  dataGen.getList();
-            printList(list);
-            // dataGen.generateDataWithRegex("[a-z1-9]{10}",10,"text.txt");
-           // ArrayList<Person> persons = dataGen.generateWithClass(Person.class,10);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }*/
+        DataGenerator datagen = new DataGenerator("pathname");
+        //datagen.specifiedJSON();
+        //datagen.primitiveJSON();
 
     }
     public static void printList(ArrayList<Person> list){
