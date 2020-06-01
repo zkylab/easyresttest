@@ -26,16 +26,29 @@ public class Parser {
 
     }
 
+    /**
+     * In order to get Parser's instance, statically call this method
+     * @return Parser, Swagger Parser Instance.
+     */
     public static Parser getInstance(){
            if(swaggerParser_instance == null)
                return swaggerParser_instance = new Parser();
            return swaggerParser_instance;
     }
 
+    /**
+     * Set your swagger json file. It can be overwritten when you set more than one. 
+     * @param File, swagger.json file
+     */
     public void setJSON(File file){
         jsonFile = file;
     }
 
+    /**
+     * Parse swagger json into Java structures such as hashmap, arraylist.
+     * Parsed object will be used by code generator.
+     */
+    //TODO: make this method private, hide from user.
     public void runParser(){
         HashMap<String, Object>  swaggerRoot = parseSwaggerRaw();
         HashMap<String,Object> servicesRaw = (HashMap<String, Object>) swaggerRoot.get("paths");
