@@ -26,7 +26,6 @@ public class TestDataGenerator {
                 numOfFemale++;
 
         }
-
         System.out.println("Male rate : " + (numOfMale/totalNum*100));
         System.out.println("Female rate : " + (numOfFemale/totalNum*100));
     }
