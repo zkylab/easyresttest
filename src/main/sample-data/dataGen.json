@@ -1,0 +1,64 @@
+{
+
+"genType": "name",
+
+"fields":{
+
+    "male": {
+
+        "ratio": 40
+
+    },
+
+    "female": {
+
+        "ratio":60,
+
+        "innerRatio":{
+
+            "genType": "age",
+
+            "fields": {
+
+                "olders":{
+
+                    "ratio":30,
+
+                    "props": [
+
+                        {"condition": "between",
+
+                        "value": "10-50"},
+
+                        {"condition": "between",
+
+                        "value": "80-90"}
+
+                     ]
+
+                },
+
+                "youngers": {
+
+                    "ratio": 70,
+
+                    "props": [
+
+                        {"condition": "between",
+
+                            "value": "60-75"}
+
+                    ]
+
+                }
+
+            }
+
+        }
+
+    }
+
+}
+
+}
+
