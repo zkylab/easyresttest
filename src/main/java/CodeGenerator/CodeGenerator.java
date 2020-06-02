@@ -174,20 +174,20 @@ public class CodeGenerator {
                 continue;
             switch (currentPar.getIn()) {
                 case "path":
-                    currentMethod = writeToJavaVariable("parameters", "pathParam(\"" + currentPar.getName() + "\", DATA).\r\n\t%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "pathParam(\"" + currentPar.getName() + "\", DATA).\r\n\t\t%parameters", currentMethod);
                     currentMethod = writeToJavaVariable("testURL", "\"" + (hostname + endpointPath) + "\"", currentMethod);
                     break;
                 case "formData":
-                    currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA).\r\n\t%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA).\r\n\t\t%parameters", currentMethod);
                     break;
                 case "query":
-                    currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA).\r\n\t%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA).\r\n\t\t%parameters", currentMethod);
                     break;
                 case "body":
-                    currentMethod = writeToJavaVariable("parameters", "body(BODYDATA).\r\n\t%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "body(BODYDATA).\r\n\t\t%parameters", currentMethod);
                     break;
                 case "header":
-                    currentMethod = writeToJavaVariable("parameters", "header(\"" + currentPar.getName() + "\", DATA).\r\n\t%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "header(\"" + currentPar.getName() + "\", DATA).\r\n\t\t%parameters", currentMethod);
                     break;
             }
         }
@@ -205,10 +205,10 @@ public class CodeGenerator {
         for(AssertionSet assertionSet : assertionSets) {
             switch (assertionSet.getIn()) {
                 case "body":
-                    currentMethod = writeToJavaVariable("assertions", "body(" + generateAssertionStatement(assertionSet) + "). \r\n\t %assertions", currentMethod);
+                    currentMethod = writeToJavaVariable("assertions", "body(" + generateAssertionStatement(assertionSet) + "). \r\n\t\t %assertions", currentMethod);
                     break;
                 case "header":
-                    currentMethod = writeToJavaVariable("assertions", "header(" + generateAssertionStatement(assertionSet) + "). \r\n\t %assertions", currentMethod);
+                    currentMethod = writeToJavaVariable("assertions", "header(" + generateAssertionStatement(assertionSet) + "). \r\n\t\t %assertions", currentMethod);
                     break;
                 default:
                     System.err.println("In parameter not found! Skipping...");
@@ -216,7 +216,7 @@ public class CodeGenerator {
             }
         }
         currentMethod = currentMethod.replaceAll("%assertions", "");
-        currentMethod = currentMethod.replace(". \r\n\t \r\n    }", "; \r\n\t}");
+        currentMethod = currentMethod.replace(". \r\n\t\t \r\n    }", "; \r\n\t}");
         return currentMethod;
     }
 
@@ -251,6 +251,8 @@ public class CodeGenerator {
 
         switch (assertionSet.getProp()) {
             case equals:
+                if(assertionSet.getOperator() != "==")
+                    System.out.println("Dynamic Operator CANNOT be used in equals prop. Please chooose another prop such as length to use dynamic operators. Ignoring...");
                 convertedOperator = "\"" + assertionSet.getType() + "\", ";
                 convertedOperator += "equalTo(" + assertionSet.getValue() + ")";
                 break;

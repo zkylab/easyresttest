@@ -1,4 +1,3 @@
-    //Do not remove tabs. Or do remove them if you want ugly methods. Free world buddy.
     @Test
     public void %testcaseName() {
 

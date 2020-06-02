@@ -15,12 +15,23 @@ public class AssertionParser {
     private static File jsonFile = new File(Paths.get("resources").toAbsolutePath().toString() + "/Assertions.json");
     private static AssertionParser assertion_instance = null;
 
+
+    /**
+     * Get the instance of the Assertion parser.
+     *
+     * @return
+     */
     public static AssertionParser getInstance() {
         if(assertion_instance == null)
             assertion_instance = new AssertionParser();
         return assertion_instance;
     }
 
+    /**
+     * This parses asserts for code generator. Note that if you dont give json file location before this method. It will be defaulted to Assertion.json file inside resources folder.
+     *
+     * @throws Exception
+     */
     public void runAssertionGenerator() throws Exception {
         if(jsonFile == null)
             throw new FileNotFoundException("JSON file is null");
