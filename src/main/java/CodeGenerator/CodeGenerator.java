@@ -1,5 +1,6 @@
-package Generator;
+package CodeGenerator;
 
+import AssertionObjects.AssertionSet;
 import DataManager.DataManager;
 import Parser.Parser;
 import SwaggerObjects.Service;
@@ -8,7 +9,6 @@ import SwaggerObjects.ServiceResponse;
 import enums.Enums;
 import io.restassured.http.ContentType;
 
-import javax.naming.ServiceUnavailableException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,9 +17,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
-public class Generator {
+public class CodeGenerator {
     //Generator class instance for glorious code generation stuff. Neat.
-    private static Generator generator_instance = null;
+    private static CodeGenerator codeGenerator_instance = null;
     //Parsed services from Parser class.
     private static ArrayList<Service> parsedServices = null;
     //This tells the Generator class to which folder it should output its generated .java files.
@@ -36,10 +36,10 @@ public class Generator {
      * Get the generator instance.
      *
      */
-    public static Generator getInstance() {
-        if(generator_instance == null)
-            generator_instance = new Generator();
-        return generator_instance;
+    public static CodeGenerator getInstance() {
+        if(codeGenerator_instance == null)
+            codeGenerator_instance = new CodeGenerator();
+        return codeGenerator_instance;
     }
 
     /**
@@ -48,12 +48,12 @@ public class Generator {
      * @param fileName for java file name.
      *
      * @return the path of the generated file.
-     * @throws Exception this throws this very general exception since it is the main method that every submethod returns too. Hence, Mother of all Exception.
+     * @throws Exception this throws this very general exception since it is the main method that every submethod returns to. Hence, Mother of all Exceptions.
      *
      */
     public String runGenerator(String fileName, String hostname) throws Exception {
         if(parsedServices == null)
-            throw new ServiceUnavailableException("Parser Service is null.");
+            throw new NullPointerException("Parser Service is null.");
         setHostname(hostname);
         generate(fileName);
         if(currentJavaFile != null)
@@ -62,6 +62,7 @@ public class Generator {
     }
 
     /**
+     * Set the hostname if you dont want to change every single testscases hostname later.
      *
      * @param hostname for hostname. Duh.
      */
@@ -81,6 +82,7 @@ public class Generator {
         ContentType requestContentType, responseContentType;
         ArrayList<ServiceParameter> serviceParameters;
         ServiceResponse response;
+        DataManager dataManager = DataManager.getInstance();
         if(currentJavaFile == null)
             throw new FileNotFoundException("Java file not found.");
         String currentClass = appendTestFunction(new File(Paths.get("resources").toAbsolutePath().toString() + "/" + Enums.testClassType.GeneralRestAssuredContainer.toString() + ".re"));
@@ -117,14 +119,19 @@ public class Generator {
             //Get into service parameters no matter what, since it needs to delete the var string even if no parameters has been given.
             currentMethod = insertServiceParameters(serviceParameters, currentService.getEndPointPath(), method, currentMethod);
 
+            //GENERATE ASSERTIONS-----------------------------------------------------------------------------------------------------------------------
+            currentMethod = insertAssertionParameters(dataManager.getAsserts(), currentMethod);
+
             response = currentService.getResponse();
             if(response != null)
                 currentMethod = writeToJavaVariable("statusCode", Integer.toString(response.getStatusCode()), currentMethod);
             else
                 System.out.println("Status code from response is null. Skipping.");
 
+
             currentMethod += "\r\n\r\n";
             currentMethod = currentMethod.replaceAll("%parameters", "");
+            currentMethod = currentMethod.replaceAll("%assertions", "");
             currentMethod = currentMethod.replaceAll("%testURL", "\"" + hostname + "\"");
             currentClass = writeToJavaVariable("tests", currentMethod + "\r\n%tests", currentClass);
             System.out.println("Java file " + fileName + " appended.");
@@ -167,23 +174,49 @@ public class Generator {
                 continue;
             switch (currentPar.getIn()) {
                 case "path":
-                    currentMethod = writeToJavaVariable("parameters", "pathparam(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "pathParam(\"" + currentPar.getName() + "\", DATA).\r\n\t\t%parameters", currentMethod);
                     currentMethod = writeToJavaVariable("testURL", "\"" + (hostname + endpointPath) + "\"", currentMethod);
                     break;
                 case "formData":
-                    currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "param(\"" + currentPar.getName() + "\", DATA).\r\n\t\t%parameters", currentMethod);
                     break;
                 case "query":
-                    currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "queryParam(\"" + currentPar.getName() + "\", DATA).\r\n\t\t%parameters", currentMethod);
                     break;
                 case "body":
-                    currentMethod = writeToJavaVariable("parameters", "body(BODYDATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "body(BODYDATA).\r\n\t\t%parameters", currentMethod);
                     break;
                 case "header":
-                    currentMethod = writeToJavaVariable("parameters", "header(\"" + currentPar.getName() + "\", DATA).\r\n%parameters", currentMethod);
+                    currentMethod = writeToJavaVariable("parameters", "header(\"" + currentPar.getName() + "\", DATA).\r\n\t\t%parameters", currentMethod);
                     break;
             }
         }
+        return currentMethod;
+    }
+
+    /**
+     * Insert assertion acquired from Assertion Parser class.
+     *
+     * @param assertionSets for getting AssertionSet objects
+     * @param currentMethod current method to work on.
+     * @return string of interloped assertions.
+     */
+    private String insertAssertionParameters(ArrayList<AssertionSet> assertionSets, String currentMethod) {
+        for(AssertionSet assertionSet : assertionSets) {
+            switch (assertionSet.getIn()) {
+                case "body":
+                    currentMethod = writeToJavaVariable("assertions", "body(" + generateAssertionStatement(assertionSet) + "). \r\n\t\t %assertions", currentMethod);
+                    break;
+                case "header":
+                    currentMethod = writeToJavaVariable("assertions", "header(" + generateAssertionStatement(assertionSet) + "). \r\n\t\t %assertions", currentMethod);
+                    break;
+                default:
+                    System.err.println("In parameter not found! Skipping...");
+                    break;
+            }
+        }
+        currentMethod = currentMethod.replaceAll("%assertions", "");
+        currentMethod = currentMethod.replace(". \r\n\t\t \r\n    }", "; \r\n\t}");
         return currentMethod;
     }
 
@@ -205,6 +238,68 @@ public class Generator {
      */
     public void setCustomOutputFolder(File location) {
         rootOutputLocation = location.toPath();
+    }
+
+    /**
+     * Get the current assertionset under generator and constuct the rest assured operators.
+     *
+     * @param assertionSet get the assertion set object to construct the assertion(Duh.)
+     * @return converted operator.
+     */
+    private String generateAssertionStatement(AssertionSet assertionSet) {
+        String convertedOperator = null;
+
+        switch (assertionSet.getProp()) {
+            case equals:
+                if(assertionSet.getOperator() != "==")
+                    System.out.println("Dynamic Operator CANNOT be used in equals prop. Please chooose another prop such as length to use dynamic operators. Ignoring...");
+                convertedOperator = "\"" + assertionSet.getType() + "\", ";
+                convertedOperator += "equalTo(" + assertionSet.getValue() + ")";
+                break;
+            case isnull:
+                convertedOperator = "\"" + assertionSet.getType() + "\", ";
+                if(Boolean.parseBoolean(assertionSet.getValue()))
+                    convertedOperator += "nullValue()";
+                else
+                    convertedOperator += "notNullValue()";
+                break;
+            case length:
+                String operator;
+                switch (assertionSet.getOperator()) {
+                    case "==":
+                        operator = "is";
+                        break;
+                    case ">":
+                        operator = "greaterThan";
+                        break;
+                    case ">=":
+                        operator = "greaterThanOrEqualTo";
+                        break;
+                    case "<=":
+                        operator = "lessThanOrEqualTo";
+                        break;
+                    case "<":
+                        operator = "lessThan";
+                        break;
+                    case "!=":
+                        operator = "not";
+                        break;
+                    default:
+                        operator = "OperatorNotFound";
+                        System.err.println("Operator not found!!. Skipping...");
+                        break;
+                }
+                convertedOperator = "\"size()\", ";
+                convertedOperator += operator + "(" + Integer.parseInt(assertionSet.getValue()) + ")";
+                break;
+            case contains:
+                convertedOperator = "containsString(\"" + assertionSet.getValue() + "\")";
+                break;
+            default:
+                System.err.println("Prop file could not be matched. Skipping.");
+                break;
+        }
+        return convertedOperator;
     }
 
     /**

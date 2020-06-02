@@ -1,11 +1,12 @@
-@Test
-public void %testcaseName() {
+    @Test
+    public void %testcaseName() {
 
-    given().
-    %parameters
-    when().
-        get(%testURL).
-    then().
-        assertThat().
-        statusCode(%statusCode).
-}
+        given().
+        %parameters
+        when().
+            %reqType(%testURL).
+        then().
+            assertThat().
+            statusCode(%statusCode).
+            %assertions
+    }

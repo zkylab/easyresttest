@@ -1,11 +1,10 @@
+import Asserter.AssertionParser;
 import DataManager.DataManager;
-import Generator.Generator;
+import CodeGenerator.CodeGenerator;
 import Parser.Parser;
 import SwaggerObjects.Service;
 
-import javax.naming.ServiceUnavailableException;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import static io.restassured.RestAssured.given;
@@ -22,7 +21,10 @@ public class MainTest {
         ArrayList<Service> services = DataManager.getInstance().getServices();
         System.out.println(services);
 
-        Generator generator = Generator.getInstance();
+        AssertionParser gen = AssertionParser.getInstance();
+        gen.runAssertionGenerator();
+
+        CodeGenerator generator = CodeGenerator.getInstance();
         generator.setParsedServices(new File("D:\\Workspace\\easyresttest\\src\\main\\sample-data\\petshop-swagger.json"));
         generator.runGenerator("test", DataManager.getInstance().getHost());
 
