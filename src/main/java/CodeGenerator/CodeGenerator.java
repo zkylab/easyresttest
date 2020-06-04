@@ -132,7 +132,7 @@ public class CodeGenerator {
             currentMethod += "\r\n\r\n";
             currentMethod = currentMethod.replaceAll("%parameters", "");
             currentMethod = currentMethod.replaceAll("%assertions", "");
-            currentMethod = currentMethod.replaceAll("%testURL", "\"" + hostname + "\"");
+            currentMethod = currentMethod.replaceAll("%testURL", "\"" + hostname + currentService.getEndPointPath() + "\"");
             currentClass = writeToJavaVariable("tests", currentMethod + "\r\n%tests", currentClass);
             System.out.println("Java file " + fileName + " appended.");
         }
