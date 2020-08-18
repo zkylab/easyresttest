@@ -9,9 +9,13 @@ import java.util.ArrayList;
 
 public class TestDataGenerator {
     public static void main(String[] args) {
-        DataGenerator datagen = new DataGenerator("pathname");
-        //datagen.specifiedJSON();
-        //datagen.primitiveJSON();
+        DataGenerator datagen1 = new DataGenerator("C:\\Users\\dogru\\IdeaProjects\\easyresttest\\src\\main\\sample-data\\dataGen.json");
+        datagen1.specifiedJSON();
+
+        DataGenerator datagen2 = new DataGenerator("C:\\Users\\dogru\\IdeaProjects\\easyresttest\\resources\\generator_primitive.json");
+
+        ArrayList<Object> list = datagen2.primitiveJSON();
+        System.out.println(list);
 
     }
     public static void printList(ArrayList<Person> list){
