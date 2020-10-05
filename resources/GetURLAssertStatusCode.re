@@ -1,5 +1,5 @@
     @Test
-    public void %testcaseName() {
+    public void %testcaseName(%methodParameter) {
 
         given().
         %parameters

@@ -81,6 +81,7 @@ public class CodeGenerator {
         String methodName, method;
         ContentType requestContentType, responseContentType;
         ArrayList<ServiceParameter> serviceParameters;
+        ArrayList<ArrayList<ServiceParameter>> allParameters = new ArrayList<>();
         ServiceResponse response;
         DataManager dataManager = DataManager.getInstance();
         if(currentJavaFile == null)
@@ -116,6 +117,7 @@ public class CodeGenerator {
                 System.out.println("ResponseContentType is null. Skipping.");
 
             serviceParameters = currentService.getServiceParameters();
+            allParameters.add(serviceParameters);
             //Get into service parameters no matter what, since it needs to delete the var string even if no parameters has been given.
             currentMethod = insertServiceParameters(serviceParameters, currentService.getEndPointPath(), method, currentMethod);
 
@@ -142,6 +144,10 @@ public class CodeGenerator {
         System.out.println("Class constructed. Writing to java file...");
         appendToJavaFile(currentJavaFile, currentClass);
         System.out.println("Parsed methods generated.");
+
+        DataProviderGenerator dataProviderGenerator = new DataProviderGenerator();
+        dataProviderGenerator.addDataProvider(currentJavaFile,allParameters);
+
     }
 
     /**

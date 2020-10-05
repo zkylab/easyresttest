@@ -12,7 +12,7 @@ import static io.restassured.RestAssured.given;
 public class MainTest {
     public static void main(String[] args) throws Exception{
         // hello easy rest test
-        File swaggerFile = new File("D:\\Workspace\\easyresttest\\src\\main\\sample-data\\petshop-swagger.json");
+        File swaggerFile = new File("C:\\Users\\dogru\\IdeaProjects\\easyresttest\\src\\main\\sample-data\\petshop-swagger.json");
 
         Parser parser = Parser.getInstance();
         parser.setJSON(swaggerFile);
@@ -25,7 +25,7 @@ public class MainTest {
         gen.runAssertionGenerator();
 
         CodeGenerator generator = CodeGenerator.getInstance();
-        generator.setParsedServices(new File("D:\\Workspace\\easyresttest\\src\\main\\sample-data\\petshop-swagger.json"));
+        generator.setParsedServices(new File("C:\\Users\\dogru\\IdeaProjects\\easyresttest\\src\\main\\sample-data\\petshop-swagger.json"));
         generator.runGenerator("test", DataManager.getInstance().getHost());
 
         String host = DataManager.getInstance().getHost();
